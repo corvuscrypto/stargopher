@@ -1,9 +1,5 @@
 package stargopher
 
-func packetBuilder() {
-
-}
-
 //ProtocolVersion is the first packet sent. It contains the server version.
 type ProtocolVersion struct {
 	Version uint32
