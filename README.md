@@ -4,5 +4,7 @@ This project will be an attempt to make a more functional server for starbound. 
 
 ##TODO
 
-* make functional pass-through TCP proxy
-* TBA
+* ~~make functional pass-through TCP proxy~~
+* Organize data stream into packets (High Priority)
+* Add zlib decompression for packets with zlib headers (High Priority)
+* Determine packet behavior (Medium Priority)
