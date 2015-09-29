@@ -1,7 +1,9 @@
 package stargopher
 
+type packetType int
+
 const (
-	protocolVersion int = iota
+	protocolVersion packetType = iota
 	serverDisconnect
 	connectSuccess
 	connectFailure

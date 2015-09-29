@@ -22,16 +22,66 @@ type Connection struct {
 
 func (c *Connection) handler(axeman chan error) {
 	for {
-		data := make([]byte, 512)
+		var packet []byte
+		var payloadLength int64
+		//first start pulling 1 byte at a time until VLQ is resolved
+		var iterator int64
+		for {
+			data := make([]byte, 1)
+			_, err := c.Read(data)
+			if err != nil {
+				axeman <- err
+			}
+			packet = append(packet, data[0:]...)
 
-		//Always read stuff from the TCP connection
-		n, err := c.Read(data)
-		if err != nil {
-			axeman <- err
+			if data[0] < 0x80 && iterator > 0 {
+				break
+			}
+			iterator++
 		}
-		//if there is data, then pass it off to the Incoming channel
-		c.Incoming <- data[:n]
-		//repeat
+
+		//register the size of the Payload
+		payloadLength = Varint(packet[1:])
+
+		//if Payload length is negative to indicate compression, make it positive
+		if payloadLength < 0 {
+			payloadLength = -payloadLength
+		}
+
+		//register how many bytes remain to read
+		var remaining = int(payloadLength)
+
+		//loop and read the TCP stream until remaining = 0
+		for {
+			var data []byte
+
+			//Here, max buffer size is 256, this should be programmatically
+			//determined in the future to allow full control
+
+			var maxBufferSize = 256
+
+			if remaining < maxBufferSize {
+				data = make([]byte, remaining)
+			} else {
+				data = make([]byte, maxBufferSize)
+			}
+			n, err := c.Read(data)
+			if err != nil {
+				axeman <- err
+			}
+			//if there is data, then add it to the new packet
+			packet = append(packet, data[0:n]...)
+
+			remaining -= n
+
+			//break the loop if no more data from this packet
+			if remaining == 0 {
+				break
+			}
+		}
+
+		//send the packet across
+		c.Incoming <- packet
 	}
 }
 
