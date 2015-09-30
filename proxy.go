@@ -41,11 +41,11 @@ func (c *Connection) handler(axeman chan error) {
 		}
 
 		//register the size of the Payload
-		payloadLength = Varint(packet[1:])
+		payloadLength = Varint(packet[1:]) / 2
 
-		//if Payload length is negative to indicate compression, make it positive
+		//if Payload length is negative to indicate compression, make it positive and add 1
 		if payloadLength < 0 {
-			payloadLength = -payloadLength
+			payloadLength = (-payloadLength) + 1
 		}
 
 		//register how many bytes remain to read
@@ -80,8 +80,14 @@ func (c *Connection) handler(axeman chan error) {
 			}
 		}
 
-		//send the packet across
-		c.Incoming <- packet
+		//call packet handler
+		var passthrough bool
+		packet, passthrough = PacketHandler(packet, payloadLength)
+
+		//send the packet across if passthrough is true
+		if passthrough {
+			c.Incoming <- packet
+		}
 	}
 }
 
