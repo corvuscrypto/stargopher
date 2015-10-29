@@ -136,7 +136,9 @@ func (pipe *Pipe) pipeRoutine() {
 	}
 }
 
-func newConnection(conn *net.TCPConn) *Pipe {
+//NewConnection creates a new connection to the starbound server and returns a
+//full duplex TCP connection represented as type Pipe
+func NewConnection(conn *net.TCPConn) *Pipe {
 
 	toServer := make(chan []byte)
 	toClient := make(chan []byte)

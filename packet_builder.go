@@ -1,4 +1,4 @@
-package main
+package stargopher
 
 import "fmt"
 
@@ -12,6 +12,14 @@ type Packet struct {
 //call any associated methods. The variable passthrough will be true if
 //the data is meant to be sent through. Otherwise the packet will be dropped
 func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
+
+	return data, true
+}
+
+//PacketDecoder is responsible for turning packet data into an easily
+//modifiable struct to be later reencoded for transport
+func PacketDecoder(data []byte, payloadLength int64) interface{} {
+
 	//isolate the payload
 	payload := data[len(data)-int(payloadLength):]
 
@@ -24,7 +32,7 @@ func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
 		if text[0] == '/' {
 			//handleCommand()
 			//ignore all commands for now to test behavior
-			return data, false
+			return nil
 		}
 		fmt.Println("Client sent message: ", text)
 		break
@@ -40,10 +48,7 @@ func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
 		messageLength := int(payload[i])
 		i++
 		message := string(payload[i : i+messageLength])
-
-		//only log the info for now
-		fmt.Println("Server received message: \nUSER:", userName, "\nID:", userID, "\nMESSAGE:", message)
-		break
+		return &ChatReceived{userID, userNameLength, userName, messageLength, message}
 	}
-	return data, true
+	return nil
 }

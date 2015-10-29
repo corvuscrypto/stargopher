@@ -41,11 +41,11 @@ type HandshakeChallenge struct {
 
 //ChatReceived is sent to a client with a chat message.
 type ChatReceived struct {
-	Channel  uint8
-	World    string
-	ClientID uint32
-	Name     string
-	Message  string
+	UserId         int
+	UserNameLength int
+	UserName       string
+	MessageLength  int
+	Message        string
 }
 
 //UniverseTimeUpdate is sent from the server to update the current time.
