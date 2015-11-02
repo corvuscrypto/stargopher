@@ -17,16 +17,16 @@ var afterHandlers = make(map[packetType][]func())
 //the data is meant to be sent through. Otherwise the packet will be dropped
 func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
 	//log for debugging for now
-	fmt.Println(packetType(data[0]).String(), data[1:])
+	//fmt.Println(packetType(data[0]).String(), data[1:])
 
 	ptype := packetType(data[0])
-	packet := PacketDecoder(data, payloadLength)
 
 	//first handle the before action if exists
 	for _, f := range beforeHandlers[ptype] {
 		f()
 	}
 
+	packet := PacketDecoder(data, payloadLength)
 	//then do the packet modifying functions
 	for _, f := range packetModHandlers[ptype] {
 		packet = f(packet)
@@ -59,10 +59,10 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			//ignore all commands for now to test behavior
 			return nil
 		}
-		fmt.Println("Client sent message: ", text)
+
 		break
 
-	case chatReceived:
+	case ChatReceived:
 		var i = 5
 		userID := int(payload[i])
 		i++
@@ -73,7 +73,8 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 		messageLength := int(payload[i])
 		i++
 		message := string(payload[i : i+messageLength])
-		return &ChatReceived{userID, userNameLength, userName, messageLength, message}
+		fmt.Println("Client sent message: ", message)
+		return &ChatReceivedPacket{userID, userNameLength, userName, messageLength, message}
 	}
 	return nil
 }

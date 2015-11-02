@@ -8,7 +8,7 @@ const (
 	connectSuccess
 	connectFailure
 	handshakeChallenge
-	chatReceived
+	ChatReceived
 	timeUpdate
 	celestialResponse
 	playerWarpResult

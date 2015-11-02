@@ -39,8 +39,8 @@ type HandshakeChallenge struct {
 	HashCount    int32
 }
 
-//ChatReceived is sent to a client with a chat message.
-type ChatReceived struct {
+//ChatReceivedPacket is sent to a client with a chat message.
+type ChatReceivedPacket struct {
 	UserId         int
 	UserNameLength int
 	UserName       string
