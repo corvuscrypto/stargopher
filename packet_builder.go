@@ -8,11 +8,18 @@ type Packet struct {
 	PayloadLength int64
 }
 
+//These are the maps that will contain the functions that modify
+//the packets and performs actions before or after handling.
+//Only the packetModHandlers should modify server/client sent data
+var beforeHandlers = make(map[packetType][]func())
+var packetModHandlers = make(map[packetType][]func() interface{})
+var afterHandlers = make(map[packetType][]func())
+
 //PacketHandler will build an appropriate packet, then
 //call any associated methods. The variable passthrough will be true if
 //the data is meant to be sent through. Otherwise the packet will be dropped
 func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
-
+	fmt.Println(packetType(data[0]).String(), data[1:])
 	return data, true
 }
 
