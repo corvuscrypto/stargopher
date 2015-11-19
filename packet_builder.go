@@ -9,7 +9,7 @@ type Packet interface{}
 //the packets and performs actions before or after handling.
 //Only the packetModHandlers should modify server/client sent data
 var beforeHandlers = make(map[packetType][]func())
-var packetModHandlers = make(map[packetType][]func(Packet) Packet)
+var packetModHandlers = make(map[packetType][]func(Packet) (Packet, bool))
 var afterHandlers = make(map[packetType][]func())
 
 //PacketHandler will build an appropriate packet, then
@@ -21,6 +21,7 @@ func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
 
 	ptype := packetType(data[0])
 
+	var passthrough = true
 	//first handle the before action if exists
 	for _, f := range beforeHandlers[ptype] {
 		f()
@@ -29,7 +30,9 @@ func PacketHandler(data []byte, payloadLength int64) ([]byte, bool) {
 	packet := PacketDecoder(data, payloadLength)
 	//then do the packet modifying functions
 	for _, f := range packetModHandlers[ptype] {
-		packet = f(packet)
+		var rb = false
+		packet, rb = f(packet)
+		passthrough = passthrough && rb
 	}
 
 	//then do the after handling functions

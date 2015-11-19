@@ -1,5 +1,7 @@
 package stargopher
 
+import "time"
+
 type funcType int
 
 const APPEND_BEFORE = funcType(0)
@@ -21,10 +23,25 @@ func AddPluginHandlers(c funcType, p packetType, f interface{}) {
 		beforeHandlers[p] = append(beforeHandlers[p], f.(func()))
 		break
 	case APPEND_ON:
-		packetModHandlers[p] = append(packetModHandlers[p], f.(func(Packet) Packet))
+		packetModHandlers[p] = append(packetModHandlers[p], f.(func(Packet) (Packet, bool)))
 		break
 	case APPEND_AFTER:
 		afterHandlers[p] = append(afterHandlers[p], f.(func()))
 		break
 	}
+}
+
+//AddScheduledRoutine allows you to add scheduled tasks to the server, such as
+//message of the day, or other periodic notifications. You can also schedule
+//logging or routine restarts with the server.
+func AddScheduledRoutine(d time.Duration, f func()) {
+
+	//initiate goroutine to handle scheduled function
+	go func(d time.Duration, f func()) {
+		for {
+			<-time.After(d)
+			f()
+		}
+	}(d, f)
+
 }
