@@ -11,7 +11,7 @@ const APPEND_AFTER = funcType(2)
 //AddPluginHandlers sets an array of functions to a map key
 //to the appropriate handler map according to the behavior wanted.
 //immediately invoked functions can also be set here.
-func AddPluginHandlers(c funcType, p packetType, f interface{}) {
+func AddPluginHandlers(c funcType, p PacketType, f interface{}) {
 	/*
 	   E.g. this would mean add actions before each ChatSent packet type is
 	   handled:

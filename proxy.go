@@ -1,7 +1,10 @@
 package stargopher
 
 import (
+	"bytes"
+	"compress/zlib"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 )
@@ -10,7 +13,7 @@ import (
 var starboundAddr, _ = net.ResolveTCPAddr("tcp", "localhost:21025")
 
 //This will be changed later on
-var connectedClients map[string]*Client
+var connectedClients = make(map[string]*Client)
 
 //Connection struct creates adds channels onto a TCP conn for intercept
 //of data (See Pipe)
@@ -41,15 +44,18 @@ func (c *Connection) handler(axeman chan error) {
 		}
 
 		//register the size of the Payload
-		payloadLength = Varint(packet[1:]) / 2
+		payloadLength = ReadVarint(packet[1:])
 
 		//if Payload length is negative to indicate compression, make it positive and add 1
-		if payloadLength < 0 {
-			payloadLength = (-payloadLength) + 1
-		}
+		/*if payloadLength < 0 {
+			payloadLength = (-payloadLength)
+		}*/
 
 		//register how many bytes remain to read
 		var remaining = int(payloadLength)
+		if remaining < 0 {
+			remaining = -remaining
+		}
 
 		//loop and read the TCP stream until remaining = 0
 		for {
@@ -57,7 +63,6 @@ func (c *Connection) handler(axeman chan error) {
 
 			//Here, max buffer size is 256, this should be programmatically
 			//determined in the future to allow full control
-
 			var maxBufferSize = 256
 
 			if remaining < maxBufferSize {
@@ -82,7 +87,20 @@ func (c *Connection) handler(axeman chan error) {
 
 		//call packet handler
 		var passthrough bool
-		packet, passthrough = PacketHandler(packet, payloadLength)
+		var packetSend = make([]byte, len(packet))
+		copy(packetSend, packet)
+		if payloadLength < 0 {
+			b := bytes.NewReader(packetSend[iterator+1:])
+			zr, _ := zlib.NewReader(b)
+			g, _ := ioutil.ReadAll(zr)
+			zr.Close()
+			packetSend = append(packetSend[:iterator+1], g...)
+			payloadLength = int64(len(g))
+		}
+		if payloadLength < 0 {
+			payloadLength = -payloadLength
+		}
+		packetSend, passthrough = PacketHandler(packetSend, payloadLength)
 
 		//send the packet across if passthrough is true
 		if passthrough {
@@ -94,7 +112,7 @@ func (c *Connection) handler(axeman chan error) {
 //Client holds info and connection of the client
 type Client struct {
 	Connection
-	//UID        string
+	UID        string
 	Attributes map[string]interface{}
 }
 
@@ -122,6 +140,10 @@ func (pipe *Pipe) pipeRoutine() {
 			pipe.server.Write(data)
 			break
 		case data := <-pipe.server.Incoming:
+			if data[0] == 5 {
+				log.Println("Receiving Chat")
+				log.Println("ID: " + pipe.client.UID)
+			}
 			pipe.client.Write(data)
 			break
 		case data := <-pipe.axeman:
@@ -129,6 +151,8 @@ func (pipe *Pipe) pipeRoutine() {
 				pipe.client.Close()
 				pipe.server.Close()
 				log.Println("closed connection to", pipe.client.RemoteAddr().String())
+				//remove client from map
+				delete(connectedClients, pipe.client.UID)
 				return
 			}
 			break
@@ -145,6 +169,7 @@ func NewConnection(conn *net.TCPConn) *Pipe {
 
 	nClient := &Client{
 		Connection{conn, toServer, toClient},
+		newUUID(),
 		make(map[string]interface{}),
 	}
 
@@ -160,6 +185,8 @@ func NewConnection(conn *net.TCPConn) *Pipe {
 		make(chan error),
 	}
 
+	log.Println("Made client: " + nClient.UID)
+	connectedClients[nClient.UID] = nClient
 	go nPipe.pipeRoutine()
 
 	return nPipe
