@@ -1,7 +1,5 @@
 package stargopher
 
-import "log"
-
 //BroadcastMessage takes a message and broadcasts it to everyone in the server
 func BroadcastMessage(m string) {
 	packet := &chatReceived{
@@ -15,9 +13,7 @@ func BroadcastMessage(m string) {
 	}
 
 	data := SerializePacket(packet, 0)
-	log.Println("sending", data)
 	for _, c := range connectedClients {
-		log.Println(c.UID)
 		c.Connection.Outgoing <- data
 	}
 }

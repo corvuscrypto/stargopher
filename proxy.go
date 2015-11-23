@@ -5,7 +5,6 @@ import (
 	"compress/zlib"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 )
 
@@ -45,11 +44,6 @@ func (c *Connection) handler(axeman chan error) {
 
 		//register the size of the Payload
 		payloadLength = ReadVarint(packet[1:])
-
-		//if Payload length is negative to indicate compression, make it positive and add 1
-		/*if payloadLength < 0 {
-			payloadLength = (-payloadLength)
-		}*/
 
 		//register how many bytes remain to read
 		var remaining = int(payloadLength)
@@ -140,17 +134,12 @@ func (pipe *Pipe) pipeRoutine() {
 			pipe.server.Write(data)
 			break
 		case data := <-pipe.server.Incoming:
-			if data[0] == 5 {
-				log.Println("Receiving Chat")
-				log.Println("ID: " + pipe.client.UID)
-			}
 			pipe.client.Write(data)
 			break
 		case data := <-pipe.axeman:
 			if data == io.EOF {
 				pipe.client.Close()
 				pipe.server.Close()
-				log.Println("closed connection to", pipe.client.RemoteAddr().String())
 				//remove client from map
 				delete(connectedClients, pipe.client.UID)
 				return
@@ -184,8 +173,6 @@ func NewConnection(conn *net.TCPConn) *Pipe {
 		nServer,
 		make(chan error),
 	}
-
-	log.Println("Made client: " + nClient.UID)
 	connectedClients[nClient.UID] = nClient
 	go nPipe.pipeRoutine()
 

@@ -1,6 +1,8 @@
 package stargopher
 
 import (
+	"bytes"
+	"compress/zlib"
 	"fmt"
 	"reflect"
 )
@@ -48,9 +50,19 @@ func SerializePacket(p interface{}, padding int) []byte {
 			break
 		}
 	}
-	length := WriteVarint(int64(len(data) * 2))
-	fmt.Println(int64(len(data)))
-	fmt.Println(length)
+
+	var b bytes.Buffer
+	zw := zlib.NewWriter(&b)
+	zw.Write(data)
+	zw.Close()
+	var _sub = 0
+	fmt.Println(len(data), b.Len())
+	if len(data) > b.Len() {
+		data = b.Bytes()
+		_sub = 1
+	}
+
+	length := WriteVarint(int64((len(data) * 2) - _sub))
 	data = append(length, data...)
 	data = append([]byte{pid}, data...)
 	return data
