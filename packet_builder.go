@@ -1,9 +1,6 @@
 package stargopher
 
-import (
-	"fmt"
-	"log"
-)
+import "fmt"
 
 //Packet ... this may not be needed...
 type Packet interface{}
@@ -58,7 +55,6 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 	switch pt {
 
 	case ChatSent:
-		log.Println(payloadLength, data)
 		text := string(payload[1 : len(payload)-1])
 		if text[0] == '/' {
 			//handleCommand()
@@ -68,7 +64,6 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 		break
 
 	case ChatReceived:
-		log.Println(payloadLength, data)
 		channel := data[:5]
 		var i = 5
 		userID := int(payload[i])

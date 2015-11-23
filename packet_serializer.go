@@ -3,7 +3,6 @@ package stargopher
 import (
 	"bytes"
 	"compress/zlib"
-	"fmt"
 	"reflect"
 )
 
@@ -23,7 +22,6 @@ func SerializePacket(p interface{}, padding int) []byte {
 		}
 		field := values.Field(i)
 		t := field.Type().String()
-		fmt.Println(t)
 		switch t {
 		case "string":
 			data = append(data, []byte(field.Interface().(string))...)
@@ -56,7 +54,6 @@ func SerializePacket(p interface{}, padding int) []byte {
 	zw.Write(data)
 	zw.Close()
 	var _sub = 0
-	fmt.Println(len(data), b.Len())
 	if len(data) > b.Len() {
 		data = b.Bytes()
 		_sub = 1
