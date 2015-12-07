@@ -70,7 +70,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("failed to build packet:", ptype, slicePointer, data, r)
+			log.Println("failed to build packet:", ptype, slicePointer, len(payload), r)
 		}
 	}()
 
@@ -132,9 +132,9 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			} else if length == 0 {
 				x = string(payload[slicePointer:])
 			} else {
-				x = string(payload[slicePointer : len(payload)-(1+int(length))])
+				x = string(payload[slicePointer : len(payload)-(int(length))])
 			}
-			slicePointer += len(x) - 1
+			slicePointer += len(x)
 			f.SetString(x)
 			break
 		case "[]uint8":
@@ -144,9 +144,9 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			} else if length == 0 {
 				x = payload[slicePointer:]
 			} else {
-				x = payload[slicePointer : len(payload)-(1+int(length))]
+				x = payload[slicePointer : len(payload)-(int(length))]
 			}
-			slicePointer += len(x) - 1
+			slicePointer += len(x)
 			f.SetBytes(x)
 			break
 		case "bool":

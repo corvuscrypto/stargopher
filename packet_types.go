@@ -69,14 +69,7 @@ type playerWarpResult struct {
 //Version. It contains all relevant data about the connecting player.
 type clientConnect struct {
 	basePacket
-	AssetDigest []uint8
-	Claim       interface{}
-	UUIDFlag    bool
-	UUID        [16]uint8
-	PlayerName  string
-	Species     string
-	Shipworld   []uint8
-	Account     string
+	Data []byte
 }
 
 //ClientDisconnect is sent when the client disconnects.
