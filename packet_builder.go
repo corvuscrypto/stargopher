@@ -96,6 +96,9 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			case "stargopher.SVLQ":
 				length = int(tf.Interface().(SVLQ))
 				break
+			case "stargopher.VLQ":
+				length = int(tf.Interface().(VLQ))
+				break
 			case "uint8":
 				length = int(tf.Uint())
 				break
@@ -106,10 +109,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 		}
 
 		switch f.Type().String() {
-		case "uint8":
-		case "uint16":
-		case "uint32":
-		case "uint64":
+		case "uint8", "uint16", "uint32", "uint64":
 			var x uint64
 			for j := uint8(0); j < primitiveLengths[f.Type().String()]; j++ {
 				x = (x << 8) | uint64(payload[slicePointer])
@@ -117,10 +117,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			}
 			f.SetUint(x)
 			break
-		case "int8":
-		case "int16":
-		case "int32":
-		case "int64":
+		case "int8", "int16", "int32", "int64":
 			var x int64
 			for j := uint8(0); j < primitiveLengths[f.Type().String()]; j++ {
 				x = (x << 8) | int64(payload[slicePointer])
@@ -135,7 +132,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			} else if length == 0 {
 				x = string(payload[slicePointer:])
 			} else {
-				x = string(payload[slicePointer : len(data)-(1+int(length))])
+				x = string(payload[slicePointer : len(payload)-(1+int(length))])
 			}
 			slicePointer += len(x) - 1
 			f.SetString(x)
@@ -147,22 +144,27 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			} else if length == 0 {
 				x = payload[slicePointer:]
 			} else {
-				x = payload[slicePointer : len(data)-(1+int(length))]
+				x = payload[slicePointer : len(payload)-(1+int(length))]
 			}
 			slicePointer += len(x) - 1
 			f.SetBytes(x)
 			break
 		case "bool":
 			var x = true
-			if data[slicePointer] == 0 {
+			if payload[slicePointer] == 0 {
 				x = false
 			}
 			f.SetBool(x)
 			slicePointer++
 			break
 		case "stargopher.SVLQ":
-			var x, _ = ReadVarint(data[slicePointer:])
+			var x, y = ReadSVarint(payload[slicePointer:])
 			f.Set(reflect.ValueOf(SVLQ(x)))
+			slicePointer += y
+		case "stargopher.VLQ":
+			var x, y = ReadVarint(payload[slicePointer:])
+			f.Set(reflect.ValueOf(VLQ(x)))
+			slicePointer += y
 		}
 
 	}

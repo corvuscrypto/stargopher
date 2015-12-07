@@ -42,7 +42,7 @@ func (c *Connection) handler(axeman chan error) {
 		}
 
 		//register the size of the Payload
-		payloadLength, _ := ReadVarint(packet[1:])
+		payloadLength, _ := ReadSVarint(packet[1:])
 
 		//register how many bytes remain to read
 		var remaining = int(payloadLength)

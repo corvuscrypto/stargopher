@@ -44,9 +44,9 @@ type chatReceived struct {
 	basePacket
 	Channel        []byte `length:"5"`
 	UserID         uint8
-	UserNameLength SVLQ
+	UserNameLength VLQ
 	UserName       string `lengthPrefix:"true"`
-	MessageLength  uint8
+	MessageLength  VLQ
 	Message        string `lengthPrefix:"true"`
 }
 
@@ -127,15 +127,7 @@ type clientContextUpdate struct {
 //on the server.
 type worldStart struct {
 	basePacket
-	Planet          interface{}
-	WorldStructure  interface{}
-	Sky             []uint8
-	ServerWeather   []uint8
-	SpawnX          float64
-	SpawnY          float64
-	WorldProperties map[string]interface{}
-	ClientID        uint32
-	Local           bool
+	Data []byte
 }
 
 //WorldStop is called when a world thread is stopped.
@@ -335,9 +327,7 @@ type worldClientStateUpdate struct {
 //EntityCreate creates an entity.
 type entityCreate struct {
 	basePacket
-	EntityType uint8
-	StoreData  []uint8 `length:"-4"`
-	EntityID   int32
+	Data []byte
 }
 
 //EntityUpdate updates an entity's properties.
@@ -350,8 +340,7 @@ type entityUpdate struct {
 //EntityDestroy destroys an entity.
 type entityDestroy struct {
 	basePacket
-	EntityID int32
-	Death    bool
+	Data []byte
 }
 
 type hitRequest struct {
