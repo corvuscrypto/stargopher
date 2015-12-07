@@ -1,18 +1,20 @@
 package stargopher
 
 //ReadVarint takes a byte array representing a starbound VLQ and returns an int64
-func ReadVarint(buf []byte) int64 {
+func ReadVarint(buf []byte) (int64, int) {
 	var value int64
+	var count int
 	for i := 0; i < len(buf); i++ {
 		value = (value << 7) | (int64(buf[i]) & 0x7f)
 		if (buf[i] & 0x80) == 0 {
 			break
 		}
+		count++
 	}
 	if (value & 1) == 0x00 {
-		return value >> 1
+		return value >> 1, count
 	}
-	return -((value >> 1) + 1)
+	return -((value >> 1) + 1), count
 }
 
 //WriteVarint takes a byte array representing a starbound VLQ and returns an int64

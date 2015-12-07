@@ -25,7 +25,6 @@ type Connection struct {
 func (c *Connection) handler(axeman chan error) {
 	for {
 		var packet []byte
-		var payloadLength int64
 		//first start pulling 1 byte at a time until VLQ is resolved
 		var iterator int64
 		for {
@@ -43,7 +42,7 @@ func (c *Connection) handler(axeman chan error) {
 		}
 
 		//register the size of the Payload
-		payloadLength = ReadVarint(packet[1:])
+		payloadLength, _ := ReadVarint(packet[1:])
 
 		//register how many bytes remain to read
 		var remaining = int(payloadLength)

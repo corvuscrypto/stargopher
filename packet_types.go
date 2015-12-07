@@ -1,74 +1,74 @@
 package stargopher
 
+import "reflect"
+
+type basePacket struct {
+	ID            PacketType
+	PayloadLength int64
+}
+
 //ProtocolVersion is the first packet sent. It contains the server version.
 type protocolVersion struct {
+	basePacket
 	Version uint32
+}
+
+//DisconnectResponse is used to notify the client of a disconnect.
+type serverDisconnect struct {
+	basePacket
+	Unknown uint8
 }
 
 //ConnectionResponse tells the client whether their connection
 //attempt is successful or if they have been rejected.
 //It is the final packet sent in the handshake process.
-type connectionResponse struct {
-	ID                  PacketType
-	Success             bool
-	ClientID            VLQ
-	RejectionReason     string
-	CelestialInfoExists bool
-	OrbitalLevels       int32
-	ChunkSize           int32
-	XYMax               int32
-	ZMin                int32
-	ZMax                int32
-	NumSectors          VLQ
-	SectorID            string
-	SectorSeed          uint64
-	SectorPrefix        string
-	Parameters          interface{}
-	SectorConfig        interface{}
+type connectSuccess struct {
+	basePacket
 }
 
-//DisconnectResponse is used to notify the client of a disconnect.
-type disconnectResponse struct {
-	ID      PacketType
-	Unknown uint8
+//ConnectionResponse tells the client whether their connection
+//attempt is successful or if they have been rejected.
+//It is the final packet sent in the handshake process.
+type connectFailure struct {
+	basePacket
 }
 
 //HandshakeChallenge provides a salt and round count for password
 //verification. It is followed by Handshake Response.
 type handshakeChallenge struct {
-	ID           PacketType
-	ClaimMessage string
-	Salt         string
-	HashCount    int32
+	basePacket
 }
 
 //ChatReceivedPacket is sent to a client with a chat message.
 type chatReceived struct {
-	ID             PacketType
-	Channel        []byte
-	UserID         int
-	UserNameLength int
-	UserName       string
-	MessageLength  int
-	Message        string
+	basePacket
+	Channel        []byte `length:"5"`
+	UserID         uint8
+	UserNameLength SVLQ
+	UserName       string `lengthPrefix:"true"`
+	MessageLength  uint8
+	Message        string `lengthPrefix:"true"`
 }
 
 //UniverseTimeUpdate is sent from the server to update the current time.
-type universeTimeUpdate struct {
-	ID   PacketType
-	Time SVLQ
+type timeUpdate struct {
+	basePacket
+	Time int32
 }
 
 //CelestialResponse has yet to be fully understood.
 type celestialResponse struct {
-	ID PacketType
-	//Unknown
+	basePacket
+}
+
+type playerWarpResult struct {
+	basePacket
 }
 
 //ClientConnect  is sent in the handshake process immediately after the Protocol
 //Version. It contains all relevant data about the connecting player.
 type clientConnect struct {
-	ID          PacketType
+	basePacket
 	AssetDigest []uint8
 	Claim       interface{}
 	UUIDFlag    bool
@@ -80,49 +80,53 @@ type clientConnect struct {
 }
 
 //ClientDisconnect is sent when the client disconnects.
-type clientDisconnect struct {
-	ID      PacketType
+type clientDisconnectRequest struct {
+	basePacket
 	Unknown uint8
 }
 
 //HandshakeResponse is the response to the Handshake Challenge.
 type handshakeResponse struct {
-	ID            PacketType
+	basePacket
 	ClaimResponse string
 	PasswordHash  string
 }
 
 //WarpCommand is sent when the player warps/is warped to a planet or ship.
-type warpCommand struct {
-	ID          PacketType
+type playerWarp struct {
+	basePacket
 	WarpType    uint32
 	WorldCoords WorldCoord
 	PlayerName  string
 }
 
+type flyShip struct {
+	basePacket
+}
+
 //ChatSent is sent from the client whenever a message is sent in the chat window.
 type chatSent struct {
-	ID      PacketType
-	Message string
-	Channel uint8
+	basePacket
+	MessageLength uint8
+	Message       string `lengthPrefix:"True"`
+	Channel       uint8
 }
 
 //CelestialRequest has yet to be fully understood.
 type celestialRequest struct {
-	ID PacketType
-	//Unknown
+	basePacket
 }
 
 //ClientContextUpdate has yet to be fully understood.
 type clientContextUpdate struct {
-	ID   PacketType
+	basePacket
 	Data []uint8
 }
 
 //WorldStart is sent to the client when a world thread has been started
 //on the server.
 type worldStart struct {
-	ID              PacketType
+	basePacket
 	Planet          interface{}
 	WorldStructure  interface{}
 	Sky             []uint8
@@ -136,40 +140,45 @@ type worldStart struct {
 
 //WorldStop is called when a world thread is stopped.
 type worldStop struct {
-	ID     PacketType
+	basePacket
 	Status string
+}
+
+//WorldStop is called when a world thread is stopped.
+type centralStructureUpdate struct {
+	basePacket
 }
 
 //TileArrayUpdate is called when an array of tiles has its properties updated.
 type tileArrayUpdate struct {
-	ID     PacketType
-	TileX  SVLQ
-	TileY  SVLQ
-	Width  VLQ
-	Height VLQ
+	basePacket
+	TileX  int64
+	TileY  int64
+	Width  int64
+	Height int64
 	Tiles  [][]NetTile
 }
 
 //TileUpdate is called when a tile is updated.
 type tileUpdate struct {
-	ID    PacketType
-	TileX SVLQ
-	TileY SVLQ
+	basePacket
+	TileX int64
+	TileY int64
 	Tile  NetTile
 }
 
 //TileLiquidUpdate is sent when the liquid on a tile has changed position.
 type tileLiquidUpdate struct {
-	ID          PacketType
-	TileX       SVLQ
-	TileY       SVLQ
+	basePacket
+	TileX       int64
+	TileY       int64
 	LiquidLevel uint8
 	LiquidType  uint8
 }
 
 //TileDamageUpdate is sent when a tile is damaged.
 type tileDamageUpdate struct {
-	ID                     PacketType
+	basePacket
 	TileX                  int32
 	TileY                  int32
 	Unknown                uint8
@@ -182,173 +191,187 @@ type tileDamageUpdate struct {
 
 //TileModificationFailure is sent when a tile list cannot successfully be modified.
 type tileModificationFailure struct {
-	ID PacketType
+	basePacket
 	//unknown
 }
 
 //GiveItem attempts to give an item to a player. If the player's
 //inventory is full, it will drop on the ground next to them.
 type giveItem struct {
-	ID             PacketType
+	basePacket
 	ItemName       string
-	Count          VLQ
+	Count          int64
 	ItemProperties interface{}
 }
 
 //ContainerSwapResult is sent whenever two items are
 // swapped in an open container.
 type containerSwapResult struct {
-	ID PacketType
+	basePacket
 	//unknown
 }
 
 //EnvironmentUpdate is sent on an environment update.
 type environmentUpdate struct {
-	ID PacketType
-	//unknown
+	basePacket
+	Data []byte
 }
 
 //EntityInteractResult contains the results of an entity interaction.
 type entityInteractResult struct {
-	ID       PacketType
+	basePacket
 	ClientID uint32
 	EntityID int32
-	Results  interface{}
+	Results  []byte
+}
+
+type updateTileProtection struct {
+	basePacket
+	Data []byte
 }
 
 //ModifyTileList contains a list of tiles and modifications to them.
 type modifyTileList struct {
-	ID PacketType
-	//Unknown
-}
-
-//DamageTile updates a tile's damage
-type damageTile struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
 }
 
 //DamageTileGroup updates an entire tile group's damage.
 type damageTileGroup struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
+}
+
+type collectLiquid struct {
+	basePacket
+	Data []byte
 }
 
 //RequestDrop requests an item drop from the ground.
 type requestDrop struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //SpawnEntity requests that the server spawn an entity.
 type spawnEntity struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
 }
 
 //EntityInteract is sent when a client attempts to interact with an entity.
 type entityInteract struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
 }
 
 //ConnectWire connects a wire.
 type connectWire struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
 }
 
 //DisconnectAllWires disconnects all wires.
 type disconnectAllWires struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
 }
 
 //OpenContainer opens a container.
 type openContainer struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //CloseContainer closes a container.
 type closeContainer struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //ContainerSwap swaps an item in a container.
 type containerSwap struct {
-	ID PacketType
-	//Unknown
+	basePacket
+	Data []byte
 }
 
 //ContainerItemApply applies an item to another item in a container.
-type containerItemApply struct {
-	ID PacketType
-	//Unknown
+type itemApplyInContainer struct {
+	basePacket
+	Data []byte
 }
 
 //ContainerStartCrafting initiates crafting on an item in a container
 //(Used in pixel compressors and the like?)
 type containerStartCrafting struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //ContainerStopCrafting packet stops crafting on an item in a container
 type containerStopCrafting struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //BurnContainer burns a container.
 type burnContainer struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //ClearContainer clears a container.
 type clearContainer struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 }
 
 //WorldClientStateUpdate contains a world client state update
 type worldClientStateUpdate struct {
-	ID    PacketType
+	basePacket
 	Delta []uint8
 }
 
 //EntityCreate creates an entity.
 type entityCreate struct {
-	ID         PacketType
+	basePacket
 	EntityType uint8
-	StoreData  []uint8
-	EntityID   SVLQ
+	StoreData  []uint8 `length:"-4"`
+	EntityID   int32
 }
 
 //EntityUpdate updates an entity's properties.
 type entityUpdate struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int64
 	Delta    []uint8
 }
 
 //EntityDestroy destroys an entity.
 type entityDestroy struct {
-	ID       PacketType
-	EntityID SVLQ
+	basePacket
+	EntityID int32
 	Death    bool
+}
+
+type hitRequest struct {
+	basePacket
+	Data []byte
+}
+
+type damageRequest struct {
+	basePacket
+	Data []byte
 }
 
 //DamageNotification notifies the receiver of damage received.
 type damageNotification struct {
-	ID                 PacketType
-	CausingEntityID    SVLQ
-	TargetEntityID     SVLQ
-	PosX               SVLQ //*
-	PosY               SVLQ //*
-	Damage             SVLQ //*
+	basePacket
+	CausingEntityID    int64
+	TargetEntityID     int64
+	PosX               int64 //*
+	PosY               int64 //*
+	Damage             int64 //*
 	DamageType         uint8
 	DamageSourceType   string
 	TargetMaterialType string
@@ -357,26 +380,87 @@ type damageNotification struct {
 	//* denotes that values must be divided by 100 before manipulation
 }
 
-//StatusEffectRequest requests a status effect from the server.
-type statusEffectRequest struct {
-	ID               PacketType
-	Unknown          SVLQ
-	StatusEffectName string
-	Unknown2         interface{}
-	Multiplier       float64
+type entityMessage struct {
+	basePacket
+	Data []byte
+}
+
+type entityMessageResponse struct {
+	basePacket
+	Data []byte
 }
 
 //UpdateWorldProperties updates world properties.
 type updateWorldProperties struct {
-	ID            PacketType
-	NumPairs      VLQ
+	basePacket
+	NumPairs      int64
 	PropertyName  string
-	PropertyValue interface{}
+	PropertyValue []byte
 }
 
 //Heartbeat  is periodically sent to inform the other party that
 // the other end is still connected.
-type heartbeat struct {
-	ID          PacketType
-	CurrentStep VLQ
+type heartbeatUpdate struct {
+	basePacket
+	CurrentStep SVLQ
+}
+
+var packetRegistry = []reflect.Type{
+	reflect.TypeOf(protocolVersion{}),
+	reflect.TypeOf(serverDisconnect{}),
+	reflect.TypeOf(connectSuccess{}),
+	reflect.TypeOf(connectFailure{}),
+	reflect.TypeOf(handshakeChallenge{}),
+	reflect.TypeOf(chatReceived{}),
+	reflect.TypeOf(timeUpdate{}),
+	reflect.TypeOf(celestialResponse{}),
+	reflect.TypeOf(playerWarpResult{}),
+	reflect.TypeOf(clientConnect{}),
+	reflect.TypeOf(clientDisconnectRequest{}),
+	reflect.TypeOf(handshakeResponse{}),
+	reflect.TypeOf(playerWarp{}),
+	reflect.TypeOf(flyShip{}),
+	reflect.TypeOf(chatSent{}),
+	reflect.TypeOf(celestialRequest{}),
+	reflect.TypeOf(clientContextUpdate{}),
+	reflect.TypeOf(worldStart{}),
+	reflect.TypeOf(worldStop{}),
+	reflect.TypeOf(centralStructureUpdate{}),
+	reflect.TypeOf(tileArrayUpdate{}),
+	reflect.TypeOf(tileUpdate{}),
+	reflect.TypeOf(tileLiquidUpdate{}),
+	reflect.TypeOf(tileDamageUpdate{}),
+	reflect.TypeOf(tileModificationFailure{}),
+	reflect.TypeOf(giveItem{}),
+	reflect.TypeOf(containerSwapResult{}),
+	reflect.TypeOf(environmentUpdate{}),
+	reflect.TypeOf(entityInteractResult{}),
+	reflect.TypeOf(updateTileProtection{}),
+	reflect.TypeOf(modifyTileList{}),
+	reflect.TypeOf(damageTileGroup{}),
+	reflect.TypeOf(collectLiquid{}),
+	reflect.TypeOf(requestDrop{}),
+	reflect.TypeOf(spawnEntity{}),
+	reflect.TypeOf(entityInteract{}),
+	reflect.TypeOf(connectWire{}),
+	reflect.TypeOf(disconnectAllWires{}),
+	reflect.TypeOf(openContainer{}),
+	reflect.TypeOf(closeContainer{}),
+	reflect.TypeOf(containerSwap{}),
+	reflect.TypeOf(itemApplyInContainer{}),
+	reflect.TypeOf(containerStartCrafting{}),
+	reflect.TypeOf(containerStopCrafting{}),
+	reflect.TypeOf(burnContainer{}),
+	reflect.TypeOf(clearContainer{}),
+	reflect.TypeOf(worldClientStateUpdate{}),
+	reflect.TypeOf(entityCreate{}),
+	reflect.TypeOf(entityUpdate{}),
+	reflect.TypeOf(entityDestroy{}),
+	reflect.TypeOf(hitRequest{}),
+	reflect.TypeOf(damageRequest{}),
+	reflect.TypeOf(damageNotification{}),
+	reflect.TypeOf(entityMessage{}),
+	reflect.TypeOf(entityMessageResponse{}),
+	reflect.TypeOf(updateWorldProperties{}),
+	reflect.TypeOf(heartbeatUpdate{}),
 }

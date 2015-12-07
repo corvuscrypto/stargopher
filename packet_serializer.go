@@ -3,6 +3,7 @@ package stargopher
 import (
 	"bytes"
 	"compress/zlib"
+	"fmt"
 	"reflect"
 )
 
@@ -17,19 +18,27 @@ func SerializePacket(p interface{}, padding int) []byte {
 	values := reflect.ValueOf(p).Elem()
 	for i := 0; i < values.NumField(); i++ {
 		if i == 0 {
-			pid = byte(values.Field(i).Interface().(PacketType))
+			pid = byte(values.Field(i).Interface().(basePacket).ID)
 			continue
 		}
 		field := values.Field(i)
 		t := field.Type().String()
 		switch t {
 		case "string":
-			data = append(data, []byte(field.Interface().(string))...)
+			data = append(data, []byte(field.String())...)
 			break
 		case "[]uint8":
 			data = append(data, field.Bytes()...)
 			break
+		case "stargopher.SVLQ":
+			var num = field.Int() * 2
+			if num < 0 {
+				num--
+			}
+			data = append(data, WriteVarint(num)...)
+			break
 		default:
+			fmt.Println(t)
 			var holder []byte
 			var num uint64
 			if t[0] == 'i' {

@@ -1,10 +1,10 @@
 package stargopher
 
 //SVLQ is the variable length quantity type. Google for the schema info.
-type SVLQ []byte
+type SVLQ int64
 
 //VLQ is the variable length quantity type. Google for the schema info.
-type VLQ []byte
+type VLQ uint64
 
 //WorldCoord contains the X and Y coordinates of a world in Starbound
 type WorldCoord [2]int64
