@@ -104,6 +104,15 @@ type Server struct {
 	Connection
 }
 
+func (s Server) sendPacket(packet Packet) {
+	data := SerializePacket(packet, 0)
+	s.Connection.Outgoing <- data
+}
+
+func (s Server) send(data []byte) {
+	s.Connection.Outgoing <- data
+}
+
 //Pipe holds both a Client and a Server object for moderating transmission
 //of data between them.
 type Pipe struct {

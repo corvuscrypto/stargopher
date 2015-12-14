@@ -10,6 +10,16 @@ type Client struct {
 	Attributes map[string]interface{} //holds all
 }
 
+//convenience method
+func (c Client) sendPacket(packet Packet) {
+	data := SerializePacket(packet, 0)
+	c.Connection.Outgoing <- data
+}
+
+func (c Client) send(data []byte) {
+	c.Connection.Outgoing <- data
+}
+
 //GetClient takes a uid string argument and returns the reference to that client
 //if present, or nil if the client doesn't exist.
 func GetClient(uid string) *Client {

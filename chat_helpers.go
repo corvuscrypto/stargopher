@@ -15,10 +15,9 @@ func BroadcastMessage(m string) {
 		VLQ(len(m)),
 		m,
 	}
-
 	data := SerializePacket(packet, 0)
 	for _, c := range connectedClients {
-		c.Connection.Outgoing <- data
+		c.send(data)
 	}
 }
 
@@ -41,8 +40,6 @@ func MessageClient(uid string, msg string) {
 		msg,
 	}
 
-	data := SerializePacket(packet, 0)
-
-	client.Connection.Outgoing <- data
+	client.sendPacket(packet)
 
 }
