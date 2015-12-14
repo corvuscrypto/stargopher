@@ -3,8 +3,6 @@ package stargopher
 import (
 	"log"
 	"net"
-
-	"github.com/corvuscrypto/stargopher"
 )
 
 //StarboundServer is the main server object that contains information for
@@ -26,12 +24,12 @@ func (s StarboundServer) Init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go s.listen(listener)
+	s.listen(listener)
 }
 
 func (s StarboundServer) listen(l *net.TCPListener) {
 	for {
 		conn, _ := l.AcceptTCP()
-		testPipe = stargopher.NewConnection(conn)
+		NewConnection(conn)
 	}
 }
