@@ -8,6 +8,13 @@ const APPEND_BEFORE = funcType(0)
 const APPEND_ON = funcType(1)
 const APPEND_AFTER = funcType(2)
 
+//These are the maps that will contain the functions that modify
+//the packets and performs actions before or after handling.
+//Only the packetModHandlers should modify server/client sent data
+var beforeHandlers = make(map[PacketType][]func(string))
+var packetModHandlers = make(map[PacketType][]func(Packet) (Packet, bool))
+var afterHandlers = make(map[PacketType][]func(string))
+
 //AddPluginHandlers sets an array of functions to a map key
 //to the appropriate handler map according to the behavior wanted.
 //immediately invoked functions can also be set here.
@@ -20,13 +27,13 @@ func AddPluginHandlers(c funcType, p PacketType, f interface{}) {
 	*/
 	switch c {
 	case APPEND_BEFORE:
-		beforeHandlers[p] = append(beforeHandlers[p], f.(func()))
+		beforeHandlers[p] = append(beforeHandlers[p], f.(func(string)))
 		break
 	case APPEND_ON:
 		packetModHandlers[p] = append(packetModHandlers[p], f.(func(Packet) (Packet, bool)))
 		break
 	case APPEND_AFTER:
-		afterHandlers[p] = append(afterHandlers[p], f.(func()))
+		afterHandlers[p] = append(afterHandlers[p], f.(func(string)))
 		break
 	}
 }

@@ -19,7 +19,8 @@ type Connection struct {
 	Outgoing chan []byte
 }
 
-func (c *Connection) handler(axeman chan error) {
+func (c *Connection) handler(axeman chan error, uid string) {
+	pc := make(chan []byte)
 	for {
 		var packet []byte
 		//first start pulling 1 byte at a time until VLQ is resolved
@@ -76,7 +77,6 @@ func (c *Connection) handler(axeman chan error) {
 		}
 
 		//call packet handler
-		var passthrough bool
 		var packetSend = make([]byte, len(packet))
 		copy(packetSend, packet)
 		if payloadLength < 0 {
@@ -90,12 +90,10 @@ func (c *Connection) handler(axeman chan error) {
 		if payloadLength < 0 {
 			payloadLength = -payloadLength
 		}
-		packetSend, passthrough = PacketHandler(packetSend, payloadLength)
 
-		//send the packet across if passthrough is true
-		if passthrough {
-			c.Incoming <- packet
-		}
+		go PacketHandler(uid, pc, packetSend, payloadLength)
+		data := <-pc
+		c.Incoming <- data
 	}
 }
 
@@ -122,8 +120,8 @@ type Pipe struct {
 }
 
 func (pipe *Pipe) pipeRoutine() {
-	go pipe.client.handler(pipe.axeman)
-	go pipe.server.handler(pipe.axeman)
+	go pipe.client.handler(pipe.axeman, pipe.client.UID)
+	go pipe.server.handler(pipe.axeman, pipe.client.UID)
 	for {
 		//handle data immediately as it comes in.
 		//Later there will be functions for analyzing and modifying packets

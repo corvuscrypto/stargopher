@@ -15,7 +15,12 @@ func SerializePacket(p interface{}, padding int) []byte {
 		data = make([]byte, padding)
 	}
 	var pid byte
-	values := reflect.ValueOf(p).Elem()
+	var values reflect.Value
+	if reflect.TypeOf(p).String() != "reflect.Value" {
+		values = reflect.ValueOf(p).Elem()
+	} else {
+		values = p.(reflect.Value)
+	}
 	for i := 0; i < values.NumField(); i++ {
 		if i == 0 {
 			pid = byte(values.Field(i).Interface().(basePacket).ID)
@@ -48,17 +53,25 @@ func SerializePacket(p interface{}, padding int) []byte {
 			fmt.Println(t)
 			var holder []byte
 			var num uint64
+			var i uint8
 			if t[0] == 'i' {
 				num = uint64(field.Int())
 			} else {
 				num = field.Uint()
 			}
 			if num == 0 {
+				i++
 				holder = []byte{0}
 			}
+
 			for num > 0 {
 				holder = append([]byte{uint8(num & 0xff)}, holder...)
 				num >>= 8
+				i++
+			}
+			for primitiveLengths[t] > i {
+				holder = append([]byte{0}, holder...)
+				i++
 			}
 			data = append(data, holder...)
 			break
