@@ -100,6 +100,7 @@ type playerWarp struct {
 
 type flyShip struct {
 	basePacket
+	Data []byte
 }
 
 //ChatSent is sent from the client whenever a message is sent in the chat window.
@@ -192,7 +193,7 @@ type tileModificationFailure struct {
 type giveItem struct {
 	basePacket
 	ItemNameLength VLQ
-	ItemName       string
+	ItemName       string `lengthPrefix:"true"`
 	Count          VLQ
 	ItemProperties []byte
 }
@@ -334,7 +335,7 @@ type entityCreate struct {
 //EntityUpdate updates an entity's properties.
 type entityUpdate struct {
 	basePacket
-	EntityID int64
+	EntityID VLQ
 	Delta    []uint8
 }
 
