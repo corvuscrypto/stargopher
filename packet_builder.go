@@ -73,7 +73,6 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			log.Println("failed to build packet:", ptype, slicePointer, len(payload), r)
 		}
 	}()
-
 	//build packet based on the packetRegistry
 	t := packetRegistry[data[0]]
 	p := reflect.New(t).Elem()

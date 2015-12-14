@@ -37,6 +37,13 @@ func SerializePacket(p interface{}, padding int) []byte {
 			}
 			data = append(data, WriteVarint(num)...)
 			break
+		case "stargopher.VLQ":
+			var num = int64(field.Uint())
+			if num < 0 {
+				num--
+			}
+			data = append(data, WriteVarint(num)...)
+			break
 		default:
 			fmt.Println(t)
 			var holder []byte
@@ -71,5 +78,6 @@ func SerializePacket(p interface{}, padding int) []byte {
 	length := WriteVarint(int64((len(data) * 2) - _sub))
 	data = append(length, data...)
 	data = append([]byte{pid}, data...)
+	fmt.Println(data)
 	return data
 }
