@@ -1,7 +1,6 @@
 package stargopher
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 	"strconv"
@@ -28,12 +27,16 @@ func PacketHandler(uid string, pc chan []byte, data []byte, payloadLength int64)
 
 	ptype := PacketType(data[0])
 
+	if int64(ptype)|payloadLength == 0 {
+		pc <- data
+		return
+	}
+
 	var passthrough = true
 	//first handle the before action if exists
 	for _, f := range beforeHandlers[ptype] {
 		f(uid)
 	}
-
 	packet := PacketDecoder(data, payloadLength)
 	//then do the packet modifying functions
 	for _, f := range packetModHandlers[ptype] {
@@ -42,11 +45,8 @@ func PacketHandler(uid string, pc chan []byte, data []byte, payloadLength int64)
 		passthrough = passthrough && rb
 	}
 	//passthrough for now
-	SerializePacket(packet, 0)
-	if ptype == 2 {
-		fmt.Println(packet)
-	}
-	pc <- data
+
+	pc <- SerializePacket(packet, 0)
 	return
 	//then do the after handling functions
 	for _, f := range afterHandlers[ptype] {
@@ -67,7 +67,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("failed to build packet:", ptype, slicePointer, len(payload), r)
+			log.Println("failed to build packet:", data, payloadLength, ptype, slicePointer, len(payload), r)
 		}
 	}()
 	//build packet based on the packetRegistry
@@ -133,7 +133,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 			slicePointer += len(x)
 			f.SetString(x)
 			break
-		case "[]uint8":
+		case "[]uint8", "[]byte":
 			var x []byte
 			if length > 0 {
 				x = payload[slicePointer : slicePointer+int(length)]

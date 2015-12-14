@@ -119,7 +119,7 @@ type celestialRequest struct {
 //ClientContextUpdate has yet to be fully understood.
 type clientContextUpdate struct {
 	basePacket
-	Data []uint8
+	Data []byte
 }
 
 //WorldStart is sent to the client when a world thread has been started
@@ -191,9 +191,10 @@ type tileModificationFailure struct {
 //inventory is full, it will drop on the ground next to them.
 type giveItem struct {
 	basePacket
+	ItemNameLength VLQ
 	ItemName       string
-	Count          int64
-	ItemProperties interface{}
+	Count          VLQ
+	ItemProperties []byte
 }
 
 //ContainerSwapResult is sent whenever two items are
@@ -242,7 +243,7 @@ type collectLiquid struct {
 //RequestDrop requests an item drop from the ground.
 type requestDrop struct {
 	basePacket
-	EntityID int64
+	Data []byte
 }
 
 //SpawnEntity requests that the server spawn an entity.
@@ -272,13 +273,13 @@ type disconnectAllWires struct {
 //OpenContainer opens a container.
 type openContainer struct {
 	basePacket
-	EntityID int64
+	EntityID VLQ
 }
 
 //CloseContainer closes a container.
 type closeContainer struct {
 	basePacket
-	EntityID int64
+	EntityID VLQ
 }
 
 //ContainerSwap swaps an item in a container.
@@ -391,7 +392,7 @@ type updateWorldProperties struct {
 // the other end is still connected.
 type heartbeatUpdate struct {
 	basePacket
-	CurrentStep SVLQ
+	CurrentStep VLQ
 }
 
 var packetRegistry = []reflect.Type{

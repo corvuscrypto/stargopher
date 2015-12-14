@@ -3,14 +3,12 @@ package stargopher
 import (
 	"bytes"
 	"compress/zlib"
-	"fmt"
 	"reflect"
 )
 
 //SerializePacket takes a packet and returns a byte array for
 //transport across TCP
 func SerializePacket(p interface{}, padding int) []byte {
-	fmt.Println(p)
 	var data []byte
 	if padding > 0 {
 		data = make([]byte, padding)
@@ -51,27 +49,20 @@ func SerializePacket(p interface{}, padding int) []byte {
 			data = append(data, WriteVarint(num)...)
 			break
 		default:
-			var holder []byte
+			var holder = make([]byte, primitiveLengths[t])
 			var num uint64
-			var i uint8
 			if t[0] == 'i' {
 				num = uint64(field.Int())
 			} else {
 				num = field.Uint()
 			}
 			if num == 0 {
-				i++
-				holder = []byte{0}
+				holder = []byte{}
 			}
 
-			for num > 0 {
-				holder = append([]byte{uint8(num & 0xff)}, holder...)
+			for i := range holder {
+				holder[len(holder)-i-1] = uint8(num & 0xff)
 				num >>= 8
-				i++
-			}
-			for primitiveLengths[t] > i {
-				holder = append([]byte{0}, holder...)
-				i++
 			}
 			data = append(data, holder...)
 			break

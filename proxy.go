@@ -40,6 +40,10 @@ func (c *Connection) handler(axeman chan error, uid string) {
 			iterator++
 		}
 
+		if packet[0] == 0 {
+			fmt.Println("shit")
+		}
+
 		//register the size of the Payload
 		payloadLength, _ := ReadSVarint(packet[1:])
 
@@ -91,13 +95,9 @@ func (c *Connection) handler(axeman chan error, uid string) {
 		if payloadLength < 0 {
 			payloadLength = -payloadLength
 		}
-		if packet[0] == 2 {
-			fmt.Println(packetSend)
-			fmt.Println(payloadLength)
-		}
 		go PacketHandler(uid, pc, packetSend, payloadLength)
-		<-pc
-		c.Incoming <- packet
+		data := <-pc
+		c.Incoming <- data
 	}
 }
 
