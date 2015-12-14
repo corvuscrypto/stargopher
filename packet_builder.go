@@ -73,7 +73,7 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 	//build packet based on the packetRegistry
 	t := packetRegistry[data[0]]
 	p := reflect.New(t).Elem()
-	p.Field(0).Set(reflect.ValueOf(basePacket{ID: ptype, PayloadLength: payloadLength}))
+	p.Field(0).Set(reflect.ValueOf(basePacket{ID: ptype, PayloadLength: SVLQ(payloadLength)}))
 	for i := 1; i < p.NumField(); i++ {
 		var length int
 

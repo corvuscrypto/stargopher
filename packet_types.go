@@ -4,7 +4,7 @@ import "reflect"
 
 type basePacket struct {
 	ID            PacketType
-	PayloadLength int64
+	PayloadLength SVLQ
 }
 
 //ProtocolVersion is the first packet sent. It contains the server version.

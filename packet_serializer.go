@@ -57,7 +57,8 @@ func SerializePacket(p interface{}, padding int) []byte {
 				num = field.Uint()
 			}
 			if num == 0 {
-				holder = []byte{}
+				data = append(data, holder...)
+				break
 			}
 
 			for i := range holder {
