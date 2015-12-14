@@ -3,6 +3,7 @@ package stargopher
 import (
 	"bytes"
 	"compress/zlib"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -90,10 +91,13 @@ func (c *Connection) handler(axeman chan error, uid string) {
 		if payloadLength < 0 {
 			payloadLength = -payloadLength
 		}
-
+		if packet[0] == 2 {
+			fmt.Println(packetSend)
+			fmt.Println(payloadLength)
+		}
 		go PacketHandler(uid, pc, packetSend, payloadLength)
-		data := <-pc
-		c.Incoming <- data
+		<-pc
+		c.Incoming <- packet
 	}
 }
 

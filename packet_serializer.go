@@ -10,6 +10,7 @@ import (
 //SerializePacket takes a packet and returns a byte array for
 //transport across TCP
 func SerializePacket(p interface{}, padding int) []byte {
+	fmt.Println(p)
 	var data []byte
 	if padding > 0 {
 		data = make([]byte, padding)
@@ -50,7 +51,6 @@ func SerializePacket(p interface{}, padding int) []byte {
 			data = append(data, WriteVarint(num)...)
 			break
 		default:
-			fmt.Println(t)
 			var holder []byte
 			var num uint64
 			var i uint8
@@ -91,6 +91,5 @@ func SerializePacket(p interface{}, padding int) []byte {
 	length := WriteVarint(int64((len(data) * 2) - _sub))
 	data = append(length, data...)
 	data = append([]byte{pid}, data...)
-	fmt.Println(data)
 	return data
 }

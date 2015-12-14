@@ -42,7 +42,11 @@ func PacketHandler(uid string, pc chan []byte, data []byte, payloadLength int64)
 		passthrough = passthrough && rb
 	}
 	//passthrough for now
-	pc <- SerializePacket(packet, 0)
+	SerializePacket(packet, 0)
+	if ptype == 2 {
+		fmt.Println(packet)
+	}
+	pc <- data
 	return
 	//then do the after handling functions
 	for _, f := range afterHandlers[ptype] {
@@ -160,7 +164,6 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 		}
 
 	}
-	fmt.Println(ptype)
 
 	return p
 }

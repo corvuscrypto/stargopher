@@ -24,6 +24,7 @@ type serverDisconnect struct {
 //It is the final packet sent in the handshake process.
 type connectSuccess struct {
 	basePacket
+	Unknown []byte
 }
 
 //ConnectionResponse tells the client whether their connection
@@ -31,12 +32,14 @@ type connectSuccess struct {
 //It is the final packet sent in the handshake process.
 type connectFailure struct {
 	basePacket
+	Unknown []byte
 }
 
 //HandshakeChallenge provides a salt and round count for password
 //verification. It is followed by Handshake Response.
 type handshakeChallenge struct {
 	basePacket
+	Unknown []byte
 }
 
 //ChatReceivedPacket is sent to a client with a chat message.
@@ -59,10 +62,12 @@ type timeUpdate struct {
 //CelestialResponse has yet to be fully understood.
 type celestialResponse struct {
 	basePacket
+	Unknown []byte
 }
 
 type playerWarpResult struct {
 	basePacket
+	Unknown []byte
 }
 
 //ClientConnect  is sent in the handshake process immediately after the Protocol
@@ -108,6 +113,7 @@ type chatSent struct {
 //CelestialRequest has yet to be fully understood.
 type celestialRequest struct {
 	basePacket
+	Unknown []byte
 }
 
 //ClientContextUpdate has yet to be fully understood.
@@ -132,6 +138,7 @@ type worldStop struct {
 //WorldStop is called when a world thread is stopped.
 type centralStructureUpdate struct {
 	basePacket
+	Unknown []byte
 }
 
 //TileArrayUpdate is called when an array of tiles has its properties updated.
@@ -141,7 +148,7 @@ type tileArrayUpdate struct {
 	TileY  int64
 	Width  int64
 	Height int64
-	Tiles  [][]NetTile
+	Tiles  []byte
 }
 
 //TileUpdate is called when a tile is updated.
@@ -149,7 +156,7 @@ type tileUpdate struct {
 	basePacket
 	TileX int64
 	TileY int64
-	Tile  NetTile
+	Tile  []byte
 }
 
 //TileLiquidUpdate is sent when the liquid on a tile has changed position.
@@ -177,7 +184,7 @@ type tileDamageUpdate struct {
 //TileModificationFailure is sent when a tile list cannot successfully be modified.
 type tileModificationFailure struct {
 	basePacket
-	//unknown
+	Unknown []byte
 }
 
 //GiveItem attempts to give an item to a player. If the player's
@@ -193,7 +200,7 @@ type giveItem struct {
 // swapped in an open container.
 type containerSwapResult struct {
 	basePacket
-	//unknown
+	Unknown []byte
 }
 
 //EnvironmentUpdate is sent on an environment update.
