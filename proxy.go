@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 )
 
@@ -38,10 +39,6 @@ func (c *Connection) handler(axeman chan error, uid string) {
 				break
 			}
 			iterator++
-		}
-
-		if packet[0] == 0 {
-			fmt.Println("shit")
 		}
 
 		//register the size of the Payload
@@ -95,6 +92,9 @@ func (c *Connection) handler(axeman chan error, uid string) {
 		if payloadLength < 0 {
 			payloadLength = -payloadLength
 		}
+		if packet[0] != 0 {
+			fmt.Println(packet)
+		}
 		go PacketHandler(uid, pc, packetSend, payloadLength)
 		data := <-pc
 		c.Incoming <- data
@@ -137,14 +137,14 @@ func (pipe *Pipe) pipeRoutine() {
 			pipe.client.Write(data)
 			break
 		case data := <-pipe.axeman:
-			if data == io.EOF {
-				pipe.client.Close()
-				pipe.server.Close()
-				//remove client from map
-				delete(connectedClients, pipe.client.UID)
-				return
+			pipe.client.Close()
+			pipe.server.Close()
+			if data != io.EOF {
+				log.Println(data)
 			}
-			break
+			//remove client from map
+			delete(connectedClients, pipe.client.UID)
+			return
 		}
 	}
 }
