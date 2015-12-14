@@ -11,9 +11,6 @@ import (
 //This will be moved to a more organized config struct later
 var starboundAddr, _ = net.ResolveTCPAddr("tcp", "localhost:21025")
 
-//This will be changed later on
-var connectedClients = make(map[string]*Client)
-
 //Connection struct creates adds channels onto a TCP conn for intercept
 //of data (See Pipe)
 type Connection struct {
@@ -100,13 +97,6 @@ func (c *Connection) handler(axeman chan error) {
 			c.Incoming <- packet
 		}
 	}
-}
-
-//Client holds info and connection of the client
-type Client struct {
-	Connection
-	UID        string
-	Attributes map[string]interface{}
 }
 
 //Server struct holds a connection to the actual starbound server program
