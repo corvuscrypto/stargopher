@@ -1,5 +1,7 @@
 package stargopher
 
+import "reflect"
+
 //This will be changed later on
 var connectedClients = make(map[string]*Client)
 
@@ -30,7 +32,7 @@ func GetClient(uid string) *Client {
 //that have attributes equal to those in the map
 func GetClientsByAttributes(attrs map[string]interface{}) map[string]*Client {
 	//copy clients in map to array
-	var clients map[string]*Client
+	var clients = make(map[string]*Client)
 	for k, v := range connectedClients {
 		clients[k] = v
 	}
@@ -42,4 +44,13 @@ func GetClientsByAttributes(attrs map[string]interface{}) map[string]*Client {
 		}
 	}
 	return clients
+}
+
+//default function for attaching attributes to a client
+func addDefaultClientAttributes(uid string, packet Packet) (Packet, bool) {
+	c := GetClient(uid)
+	castPacket := packet.(reflect.Value).Interface().(clientConnect)
+	c.Attributes["username"] = castPacket.Name
+	c.Attributes["species"] = castPacket.Species
+	return Packet(packet), false
 }

@@ -12,7 +12,7 @@ const APPEND_AFTER = funcType(2)
 //the packets and performs actions before or after handling.
 //Only the packetModHandlers should modify server/client sent data
 var beforeHandlers = make(map[PacketType][]func(string))
-var packetModHandlers = make(map[PacketType][]func(Packet) (Packet, bool))
+var packetModHandlers = make(map[PacketType][]func(string, Packet) (Packet, bool))
 var afterHandlers = make(map[PacketType][]func(string))
 
 //AddPluginHandlers sets an array of functions to a map key
@@ -30,7 +30,7 @@ func AddPluginHandlers(c funcType, p PacketType, f interface{}) {
 		beforeHandlers[p] = append(beforeHandlers[p], f.(func(string)))
 		break
 	case APPEND_ON:
-		packetModHandlers[p] = append(packetModHandlers[p], f.(func(Packet) (Packet, bool)))
+		packetModHandlers[p] = append(packetModHandlers[p], f.(func(string, Packet) (Packet, bool)))
 		break
 	case APPEND_AFTER:
 		afterHandlers[p] = append(afterHandlers[p], f.(func(string)))
@@ -51,4 +51,10 @@ func AddScheduledRoutine(d time.Duration, f func()) {
 		}
 	}(d, f)
 
+}
+
+func addDefaultHandlers() {
+	packetModHandlers[ClientConnect] = append(packetModHandlers[ClientConnect], addDefaultClientAttributes)
+	packetModHandlers[ChatSent] = append(packetModHandlers[ChatSent], checkCommands)
+	AddChatCommand("whisper", whisperCommand)
 }

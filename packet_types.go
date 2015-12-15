@@ -74,7 +74,15 @@ type playerWarpResult struct {
 //Version. It contains all relevant data about the connecting player.
 type clientConnect struct {
 	basePacket
-	Data []byte
+	Unknown       VLQ
+	Unknown2      []byte `lengthPrefix:"true"`
+	ClientShipID  []byte `length:"16"`
+	NameLength    VLQ
+	Name          string `lengthPrefix:"true"`
+	SpeciesLength VLQ
+	Species       string `lengthPrefix:"true"`
+	ShipWorld     []byte `endSequence:"3,232,3"`
+	Other         []byte
 }
 
 //ClientDisconnect is sent when the client disconnects.

@@ -4,6 +4,7 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 var primitiveLengths = map[string]uint8{
@@ -41,13 +42,12 @@ func PacketHandler(uid string, pc chan []byte, data []byte, payloadLength int64)
 	//then do the packet modifying functions
 	for _, f := range packetModHandlers[ptype] {
 		var rb = false
-		packet, rb = f(packet)
+		packet, rb = f(uid, packet)
 		passthrough = passthrough && rb
 	}
 	//passthrough for now
 
 	pc <- SerializePacket(packet, 0)
-	return
 	//then do the after handling functions
 	for _, f := range afterHandlers[ptype] {
 		f(uid)
@@ -80,9 +80,27 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 		f, ft := p.Field(i), t.Field(i)
 
 		l := ft.Tag.Get("length")
+		es := ft.Tag.Get("endSequence")
 
 		if l != "" {
 			length, _ = strconv.Atoi(l)
+		}
+
+		if es != "" {
+			if strings.Contains(es, ",") {
+				sarray := strings.Split(es, ",")
+				buffer := make([]byte, len(sarray))
+				for i, v := range sarray {
+					a, _ := strconv.Atoi(v)
+					buffer[i] = byte(a)
+				}
+				length = strings.Index(string(data[slicePointer:]), string(buffer)) - slicePointer
+			} else {
+				length = strings.Index(string(data[slicePointer:]), es) - slicePointer
+			}
+			if length < 0 {
+				length = 0
+			}
 		}
 
 		//if lengthPrefix, set local flag
@@ -167,125 +185,3 @@ func PacketDecoder(data []byte, payloadLength int64) Packet {
 
 	return p
 }
-
-/*
-func finalizePacket(p interface{}, t PacketType) interface{} {
-	switch int(t) {
-	case 0:
-		return p.(protocolVersion)
-	case 1:
-		return p.(serverDisconnect)
-	case 2:
-		return p.(connectSuccess)
-	case 3:
-		return p.(connectFailure)
-	case 4:
-		return p.(handshakeChallenge)
-	case 5:
-		return p.(chatReceived)
-	case 6:
-		return p.(timeUpdate)
-	case 7:
-		return p.(celestialResponse)
-	case 8:
-		return p.(playerWarpResult)
-	case 9:
-		return p.(clientConnect)
-	case 10:
-		return p.(clientDisconnectRequest)
-	case 11:
-		return p.(handshakeResponse)
-	case 12:
-		return p.(playerWarp)
-	case 13:
-		return p.(flyShip)
-	case 14:
-		return p.(chatSent)
-	case 15:
-		return p.(celestialRequest)
-	case 16:
-		return p.(clientContextUpdate)
-	case 17:
-		return p.(worldStart)
-	case 18:
-		return p.(worldStop)
-	case 19:
-		return p.(centralStructureUpdate)
-	case 20:
-		return p.(tileArrayUpdate)
-	case 21:
-		return p.(tileUpdate)
-	case 22:
-		return p.(tileLiquidUpdate)
-	case 23:
-		return p.(tileDamageUpdate)
-	case 24:
-		return p.(tileModificationFailure)
-	case 25:
-		return p.(giveItem)
-	case 26:
-		return p.(containerSwapResult)
-	case 27:
-		return p.(environmentUpdate)
-	case 28:
-		return p.(entityInteractResult)
-	case 29:
-		return p.(updateTileProtection)
-	case 30:
-		return p.(modifyTileList)
-	case 31:
-		return p.(damageTileGroup)
-	case 32:
-		return p.(collectLiquid)
-	case 33:
-		return p.(requestDrop)
-	case 34:
-		return p.(spawnEntity)
-	case 35:
-		return p.(entityInteract)
-	case 36:
-		return p.(connectWire)
-	case 37:
-		return p.(disconnectAllWires)
-	case 38:
-		return p.(openContainer)
-	case 39:
-		return p.(closeContainer)
-	case 40:
-		return p.(containerSwap)
-	case 41:
-		return p.(itemApplyInContainer)
-	case 42:
-		return p.(containerStartCrafting)
-	case 43:
-		return p.(containerStopCrafting)
-	case 44:
-		return p.(burnContainer)
-	case 45:
-		return p.(clearContainer)
-	case 46:
-		return p.(worldClientStateUpdate)
-	case 47:
-		return p.(entityCreate)
-	case 48:
-		return p.(entityUpdate)
-	case 49:
-		return p.(entityDestroy)
-	case 50:
-		return p.(hitRequest)
-	case 51:
-		return p.(damageRequest)
-	case 52:
-		return p.(damageNotification)
-	case 53:
-		return p.(entityMessage)
-	case 54:
-		return p.(entityMessageResponse)
-	case 55:
-		return p.(updateWorldProperties)
-	case 56:
-		return p.(heartbeatUpdate)
-	}
-	return nil
-}
-*/

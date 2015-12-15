@@ -16,6 +16,9 @@ type StarboundServer struct {
 //Init is the main method in StarboundServer that initializes the server and
 //starts the connection listener associated with the server
 func (s StarboundServer) Init() {
+
+	addDefaultHandlers()
+
 	listenAddr, err := net.ResolveTCPAddr("tcp", s.Address+":"+s.Port)
 	if err != nil {
 		log.Fatal(err)
