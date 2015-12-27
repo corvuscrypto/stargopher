@@ -102,8 +102,7 @@ type handshakeResponse struct {
 type playerWarp struct {
 	basePacket
 	WarpType    uint32
-	WorldCoords WorldCoord
-	PlayerName  string
+	WorldCoords []byte
 }
 
 type flyShip struct {

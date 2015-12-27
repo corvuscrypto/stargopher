@@ -19,7 +19,7 @@ func (s StarboundServer) Init() {
 
 	addDefaultHandlers()
 
-	listenAddr, err := net.ResolveTCPAddr("tcp", s.Address+":"+s.Port)
+	listenAddr, err := net.ResolveTCPAddr("tcp", ":"+s.Port)
 	if err != nil {
 		log.Fatal(err)
 	}

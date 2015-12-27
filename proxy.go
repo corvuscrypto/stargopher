@@ -10,7 +10,7 @@ import (
 )
 
 //This will be moved to a more organized config struct later
-var starboundAddr, _ = net.ResolveTCPAddr("tcp", "localhost:21025")
+var starboundAddr, _ = net.ResolveTCPAddr("tcp6", "[::1]:21025")
 
 //Connection struct creates adds channels onto a TCP conn for intercept
 //of data (See Pipe)
@@ -157,8 +157,10 @@ func NewConnection(conn *net.TCPConn) *Pipe {
 		newUUID(),
 		make(map[string]interface{}),
 	}
-
-	serverConn, _ := net.DialTCP("tcp", nil, starboundAddr)
+	serverConn, err := net.DialTCP("tcp", nil, starboundAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	nServer := &Server{
 		Connection{serverConn, toClient, toServer},
