@@ -46,11 +46,29 @@ func GetClientsByAttributes(attrs map[string]interface{}) map[string]*Client {
 	return clients
 }
 
+//GetReadyClients returns a list of clients
+//that are fully connected and ready
+func GetReadyClients() map[string]*Client {
+	//copy clients in map to array
+	var clients = make(map[string]*Client)
+	for k, v := range connectedClients {
+		clients[k] = v
+	}
+
+	for i, c := range clients {
+		if c.Attributes["isReady"] != true {
+			delete(clients, i)
+		}
+	}
+	return clients
+}
+
 //default function for attaching attributes to a client
 func addDefaultClientAttributes(uid string, packet Packet) (Packet, bool) {
 	c := GetClient(uid)
 	castPacket := packet.(reflect.Value).Interface().(clientConnect)
 	c.Attributes["username"] = castPacket.Name
 	c.Attributes["species"] = castPacket.Species
+	c.Attributes["isReady"] = true
 	return Packet(packet), false
 }

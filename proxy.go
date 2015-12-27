@@ -3,6 +3,7 @@ package stargopher
 import (
 	"bytes"
 	"compress/zlib"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -10,7 +11,7 @@ import (
 )
 
 //This will be moved to a more organized config struct later
-var starboundAddr, _ = net.ResolveTCPAddr("tcp6", "[::1]:21025")
+var starboundAddr, _ = net.ResolveTCPAddr("tcp", ":21025")
 
 //Connection struct creates adds channels onto a TCP conn for intercept
 //of data (See Pipe)
@@ -64,6 +65,7 @@ func (c *Connection) handler(axeman chan error, uid string) {
 			}
 			n, err := c.Read(data)
 			if err != nil {
+				fmt.Println(err)
 				axeman <- err
 			}
 			//if there is data, then add it to the new packet
@@ -92,8 +94,9 @@ func (c *Connection) handler(axeman chan error, uid string) {
 			payloadLength = -payloadLength
 		}
 		go PacketHandler(uid, pc, packetSend, payloadLength)
-		data := <-pc
-		c.Incoming <- data
+		//data := <-pc
+		<-pc
+		c.Incoming <- packet
 	}
 }
 

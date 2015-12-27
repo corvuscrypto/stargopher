@@ -15,13 +15,13 @@ func BroadcastMessage(m string) {
 		basePacket{ID: ChatReceived},
 		[]byte{1, 0, 0, 0, 0},
 		1,
-		14,
-		"^FF0000;SYSTEM",
+		15,
+		"^#FF0000;SYSTEM",
 		VLQ(len(m)),
 		m,
 	}
 	data := SerializePacket(packet, 0)
-	for _, c := range connectedClients {
+	for _, c := range GetReadyClients() {
 		c.send(data)
 	}
 }
